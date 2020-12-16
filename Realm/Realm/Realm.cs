@@ -1248,7 +1248,7 @@ namespace Realms
                 return null;
             }
 
-            return new RealmDictionary<TValue>(this, dictionaryHandle);
+            return new RealmDictionary<TValue>(this, dictionaryHandle, reference.Metadata);
         }
 
         /// <summary>
