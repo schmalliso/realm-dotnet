@@ -1159,7 +1159,6 @@ namespace Realms
         /// A thread-confined instance of the original <see cref="RealmObject"/>/<see cref="EmbeddedObject"/> resolved for the current thread or <c>null</c>
         /// if the object has been deleted after the reference was created.
         /// </returns>
-        [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The RealmObjectBase instance will own its handle.")]
         public T ResolveReference<T>(ThreadSafeReference.Object<T> reference)
             where T : RealmObjectBase
         {
@@ -1170,6 +1169,7 @@ namespace Realms
 
             if (!objectHandle.IsValid)
             {
+                objectHandle.Dispose();
                 return null;
             }
 
@@ -1186,7 +1186,6 @@ namespace Realms
         /// A thread-confined instance of the original <see cref="IList{T}"/> resolved for the current thread or <c>null</c>
         /// if the list's parent object has been deleted after the reference was created.
         /// </returns>
-        [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The List instance will own its handle.")]
         public IList<T> ResolveReference<T>(ThreadSafeReference.List<T> reference)
         {
             Argument.NotNull(reference, nameof(reference));
@@ -1195,6 +1194,7 @@ namespace Realms
             var listHandle = new ListHandle(SharedRealmHandle, listPtr);
             if (!listHandle.IsValid)
             {
+                listHandle.Dispose();
                 return null;
             }
 
@@ -1211,7 +1211,6 @@ namespace Realms
         /// A thread-confined instance of the original <see cref="ISet{T}"/> resolved for the current thread or <c>null</c>
         /// if the set's parent object has been deleted after the reference was created.
         /// </returns>
-        [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The Set instance will own its handle.")]
         public ISet<T> ResolveReference<T>(ThreadSafeReference.Set<T> reference)
         {
             Argument.NotNull(reference, nameof(reference));
@@ -1220,6 +1219,7 @@ namespace Realms
             var setHandle = new SetHandle(SharedRealmHandle, setPtr);
             if (!setHandle.IsValid)
             {
+                setHandle.Dispose();
                 return null;
             }
 
@@ -1236,7 +1236,6 @@ namespace Realms
         /// A thread-confined instance of the original <see cref="IDictionary{String, TValue}"/> resolved for the current thread or <c>null</c>
         /// if the set's parent object has been deleted after the reference was created.
         /// </returns>
-        [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The Set instance will own its handle.")]
         public IDictionary<string, TValue> ResolveReference<TValue>(ThreadSafeReference.Dictionary<TValue> reference)
         {
             Argument.NotNull(reference, nameof(reference));
@@ -1245,6 +1244,7 @@ namespace Realms
             var dictionaryHandle = new DictionaryHandle(SharedRealmHandle, dictionaryPtr);
             if (!dictionaryHandle.IsValid)
             {
+                dictionaryHandle.Dispose();
                 return null;
             }
 
