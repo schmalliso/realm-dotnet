@@ -51,13 +51,33 @@ REALM_EXPORT void realm_dictionary_set(object_store::Dictionary& dictionary, rea
     });
 }
 
+inline realm_value_t to_capi(object_store::Dictionary& dictionary, Mixed val)
+{
+    if (val.is_null()) {
+        return to_capi(std::move(val));
+    }
+
+    switch (val.get_type()) {
+    case type_Link:
+        if ((dictionary.get_type() & ~PropertyType::Flags) == PropertyType::Object) {
+            return to_capi(new Object(dictionary.get_realm(), ObjLink(dictionary.get_parent_table_key(), val.get<ObjKey>())));
+        }
+
+        REALM_UNREACHABLE();
+    case type_TypedLink:
+        return to_capi(new Object(dictionary.get_realm(), val.get_link()));
+    default:
+        return to_capi(std::move(val));
+    }
+}
+
 REALM_EXPORT bool realm_dictionary_try_get(object_store::Dictionary& dictionary, realm_value_t key, realm_value_t* value, NativeException::Marshallable& ex)
 {
     return handle_errors(ex, [&]() {
         auto mixed_value = dictionary.try_get_any(from_capi(key.string));
         if (mixed_value)
         {
-            *value = to_capi(mixed_value.value());
+            *value = to_capi(dictionary, mixed_value.value());
             return true;
         }
 
@@ -74,7 +94,7 @@ REALM_EXPORT void realm_dictionary_get_at_index(object_store::Dictionary& dictio
 
         auto pair = dictionary.get_pair(ndx);
         *key = to_capi(Mixed(pair.first));
-        *value = to_capi(pair.second);
+        *value = to_capi(dictionary, pair.second);
     });
 }
 
