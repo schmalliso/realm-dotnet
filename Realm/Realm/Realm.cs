@@ -197,12 +197,39 @@ namespace Realms
         }
 
         #endregion static
+        
+        internal struct TableKey //It needs to be moved
+        {
+            private int tableKeyValue;
+
+            public int Value => tableKeyValue;
+
+            public TableKey(int tableKeyValue)
+            {
+                this.tableKeyValue = tableKeyValue;
+            }
+        }
+
+        internal class RealmMetadata //The name needs to be changed, and it needs to be moved down
+        { 
+            public RealmObjectBase.Metadata GetRealmObjectMetadata(TableKey tablekey)
+            {
+                throw new NotImplementedException();
+            }
+
+            public RealmObjectBase.Metadata GetRealmObjectMetadata(string objectType)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
 
         [SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "A State can be shared between multiple Realm instances. It is disposed when the native instance and its BindingContext is destroyed")]
         private State _state;
 
         internal readonly SharedRealmHandle SharedRealmHandle;
         internal readonly Dictionary<string, RealmObjectBase.Metadata> Metadata;
+        internal readonly RealmMetadata realmMetadata; //Name needs to be changed
 
         /// <summary>
         /// Gets an object encompassing the dynamic API for this Realm instance.
@@ -279,7 +306,7 @@ namespace Realms
 
         private RealmObjectBase.Metadata CreateRealmObjectMetadata(ObjectSchema schema)
         {
-            var tableHandle = SharedRealmHandle.GetTable(schema.Name);
+            var tableHandle = SharedRealmHandle.GetTable(schema.Name, out var tableKeyValue);
             Weaving.IRealmObjectHelper helper;
 
             if (schema.Type != null && !Config.IsDynamic)
