@@ -30,6 +30,7 @@ using System.Xml.Serialization;
 using Realms.DataBinding;
 using Realms.Exceptions;
 using Realms.Helpers;
+using Realms.Native;
 using Realms.Schema;
 using Realms.Weaving;
 
@@ -229,7 +230,7 @@ namespace Realms
             where T : RealmObjectBase
         {
             _metadata.Schema.TryFindProperty(propertyName, out var property);
-            var relatedMeta = _realm.Metadata[property.ObjectType];
+            _realm.Metadata.TryGetValue(property.ObjectType, out var relatedMeta);
 
             return new RealmResults<T>(_realm, resultsHandle, relatedMeta);
         }
@@ -435,12 +436,15 @@ namespace Realms
 
             internal readonly ObjectSchema Schema;
 
-            public Metadata(TableHandle table, IRealmObjectHelper helper, IDictionary<string, IntPtr> propertyIndices, ObjectSchema schema)
+            internal readonly TableKey TableKey;
+
+            public Metadata(TableHandle table, IRealmObjectHelper helper, IDictionary<string, IntPtr> propertyIndices, ObjectSchema schema, TableKey tableKey)
             {
                 Table = table;
                 Helper = helper;
                 PropertyIndices = new ReadOnlyDictionary<string, IntPtr>(propertyIndices);
                 Schema = schema;
+                TableKey = tableKey;
             }
         }
     }

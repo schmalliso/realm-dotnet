@@ -197,39 +197,52 @@ namespace Realms
         }
 
         #endregion static
-        
-        internal struct TableKey //It needs to be moved
-        {
-            private int tableKeyValue;
-
-            public int Value => tableKeyValue;
-
-            public TableKey(int tableKeyValue)
-            {
-                this.tableKeyValue = tableKeyValue;
-            }
-        }
-
+       
         internal class RealmMetadata //The name needs to be changed, and it needs to be moved down
-        { 
+        {
+            private readonly Dictionary<string, RealmObjectBase.Metadata> stringToRealmObjectMetadata;
+            private readonly Dictionary<TableKey, RealmObjectBase.Metadata> tableKeyToRealmObjectMetadata;
+
+            public IEnumerable<RealmObjectBase.Metadata> Values => stringToRealmObjectMetadata.Values;
+
+            public RealmMetadata(IEnumerable<RealmObjectBase.Metadata> objectsMetadata)
+            {
+                stringToRealmObjectMetadata = new Dictionary<string, RealmObjectBase.Metadata>();
+                tableKeyToRealmObjectMetadata = new Dictionary<TableKey, RealmObjectBase.Metadata>();
+
+                foreach (var objectMetadata in objectsMetadata)
+                {
+                    stringToRealmObjectMetadata[objectMetadata.Schema.Name] = objectMetadata;
+                    tableKeyToRealmObjectMetadata[objectMetadata.TableKey] = objectMetadata;
+                }
+            }
+
+            public bool TryGetValue(TableKey tablekey, out RealmObjectBase.Metadata metadata)
+            {
+                return tableKeyToRealmObjectMetadata.TryGetValue(tablekey, out metadata);
+            }
+
+            public bool TryGetValue(string objectType, out RealmObjectBase.Metadata metadata)
+            {
+                return stringToRealmObjectMetadata.TryGetValue(objectType, out metadata);
+            }
+
             public RealmObjectBase.Metadata GetRealmObjectMetadata(TableKey tablekey)
             {
-                throw new NotImplementedException();
+                return tableKeyToRealmObjectMetadata[tablekey];
             }
 
-            public RealmObjectBase.Metadata GetRealmObjectMetadata(string objectType)
+            public RealmObjectBase.Metadata GetRealmObjectMetadata(string objecttype)
             {
-                throw new NotImplementedException();
+                return stringToRealmObjectMetadata[objecttype];
             }
         }
-
 
         [SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "A State can be shared between multiple Realm instances. It is disposed when the native instance and its BindingContext is destroyed")]
         private State _state;
 
         internal readonly SharedRealmHandle SharedRealmHandle;
-        internal readonly Dictionary<string, RealmObjectBase.Metadata> Metadata;
-        internal readonly RealmMetadata realmMetadata; //Name needs to be changed
+        internal readonly RealmMetadata Metadata;
 
         /// <summary>
         /// Gets an object encompassing the dynamic API for this Realm instance.
@@ -298,10 +311,16 @@ namespace Realms
             _state.AddRealm(this);
 
             SharedRealmHandle = sharedRealmHandle;
-            Metadata = schema.ToDictionary(t => t.Name, CreateRealmObjectMetadata);
+            Metadata = CreateRealmMetadata(schema);
             Schema = schema;
             IsFrozen = SharedRealmHandle.IsFrozen;
             DynamicApi = new Dynamic(this);
+        }
+
+        private RealmMetadata CreateRealmMetadata(RealmSchema realmSchema)  //TODO This could be removed...
+        {
+            var objectsMetadata = realmSchema.Select(CreateRealmObjectMetadata);
+            return new RealmMetadata(objectsMetadata);
         }
 
         private RealmObjectBase.Metadata CreateRealmObjectMetadata(ObjectSchema schema)
@@ -336,7 +355,7 @@ namespace Realms
                 initPropertyMap[prop.Name] = (IntPtr)index;
             }
 
-            return new RealmObjectBase.Metadata(tableHandle, helper, initPropertyMap, schema);
+            return new RealmObjectBase.Metadata(tableHandle, helper, initPropertyMap, schema, new TableKey(tableKeyValue));
         }
 
         /// <summary>
@@ -1160,7 +1179,7 @@ namespace Realms
         {
             ThrowIfDisposed();
 
-            var metadata = Metadata[typeof(T).GetTypeInfo().GetMappedOrOriginalName()];
+            Metadata.TryGetValue(typeof(T).GetTypeInfo().GetMappedOrOriginalName(), out var metadata);
             if (metadata.Table.TryFind(SharedRealmHandle, primaryKey, out var objectHandle))
             {
                 return (T)MakeObject(metadata, objectHandle);
@@ -1734,7 +1753,7 @@ namespace Realms
             {
                 _realm.ThrowIfDisposed();
 
-                var metadata = _realm.Metadata[className];
+                _realm.Metadata.TryGetValue(className, out var metadata);
                 if (metadata.Table.TryFind(_realm.SharedRealmHandle, primaryKey, out var objectHandle))
                 {
                     return _realm.MakeObject(metadata, objectHandle);
