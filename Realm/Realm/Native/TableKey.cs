@@ -16,12 +16,13 @@
 //
 ////////////////////////////////////////////////////////////////////////////
 
+using System;
 using System.Runtime.InteropServices;
 
 namespace Realms.Native
 {
-    [StructLayout(LayoutKind.Sequential)]  //TODO eventually add equals and other methods
-    internal struct TableKey
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct TableKey : IEquatable<TableKey>
     {
         private uint value;
 
@@ -31,5 +32,22 @@ namespace Realms.Native
         {
             this.value = value;
         }
+
+        public bool Equals(TableKey other) => value.Equals(other.value);
+
+        public override bool Equals(object obj)
+        {
+            return obj switch
+            {
+                TableKey other => value.Equals(other.value),
+                _ => false,
+            };
+        }
+
+        public override int GetHashCode() => value.GetHashCode();
+
+        public static bool operator ==(TableKey left, TableKey right) => left.value == right.value;
+
+        public static bool operator !=(TableKey left, TableKey right) => left.value != right.value;
     }
 }
