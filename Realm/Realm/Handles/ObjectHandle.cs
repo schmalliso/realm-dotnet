@@ -156,8 +156,7 @@ namespace Realms
 
             var objectHandle = result.AsObject(Root);
             metadata.Schema.TryFindProperty(propertyName, out var property);
-            realm.Metadata.TryGetValue(property.ObjectType, out var objectMetadata);
-            return new RealmValue(realm.MakeObject(objectMetadata, objectHandle));
+            return new RealmValue(realm.MakeObject(realm.Metadata[property.ObjectType], objectHandle));
         }
 
         public void SetValue(IntPtr propertyIndex, in RealmValue value, Realm realm)
@@ -229,7 +228,7 @@ namespace Realms
 
         public RealmList<T> GetList<T>(Realm realm, IntPtr propertyIndex, string objectType)
         {
-            var metadata = objectType == null ? null : realm.Metadata.GetRealmObjectMetadata(objectType);
+            var metadata = objectType == null ? null : realm.Metadata[objectType];
             var listHandle = new ListHandle(Root, GetRealmList(propertyIndex));
             return new RealmList<T>(realm, listHandle, metadata);
         }
@@ -237,7 +236,7 @@ namespace Realms
         public RealmSet<T> GetSet<T>(Realm realm, IntPtr propertyIndex, string objectType)
         {
             var setHandle = new SetHandle(Root, GetRealmSet(propertyIndex));
-            var metadata = objectType == null ? null : realm.Metadata.GetRealmObjectMetadata(objectType);
+            var metadata = objectType == null ? null : realm.Metadata[objectType];
             return new RealmSet<T>(realm, setHandle, metadata);
         }
 

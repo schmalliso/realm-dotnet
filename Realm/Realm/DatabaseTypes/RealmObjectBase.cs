@@ -230,7 +230,7 @@ namespace Realms
             where T : RealmObjectBase
         {
             _metadata.Schema.TryFindProperty(propertyName, out var property);
-            _realm.Metadata.TryGetValue(property.ObjectType, out var relatedMeta);
+            var relatedMeta = _realm.Metadata[property.ObjectType];
 
             return new RealmResults<T>(_realm, resultsHandle, relatedMeta);
         }
