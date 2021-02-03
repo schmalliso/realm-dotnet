@@ -101,7 +101,7 @@ namespace Realms
             public static extern bool refresh(SharedRealmHandle sharedRealm, out NativeException ex);
 
             [DllImport(InteropConfig.DLL_NAME, EntryPoint = "shared_realm_get_table", CallingConvention = CallingConvention.Cdecl)]
-            public static extern IntPtr get_table(SharedRealmHandle sharedRealm, [MarshalAs(UnmanagedType.LPWStr)] string tableName, IntPtr tableNameLength, out uint tableKeyValue, out NativeException ex);
+            public static extern IntPtr get_table(SharedRealmHandle sharedRealm, [MarshalAs(UnmanagedType.LPWStr)] string tableName, IntPtr tableNameLength, out TableKey tableKey, out NativeException ex);
 
             [DllImport(InteropConfig.DLL_NAME, EntryPoint = "shared_realm_is_same_instance", CallingConvention = CallingConvention.Cdecl)]
             [return: MarshalAs(UnmanagedType.U1)]
@@ -284,10 +284,10 @@ namespace Realms
             return result;
         }
 
-        public TableHandle GetTable(string tableName, out uint tableKeyValue)
+        public TableHandle GetTable(string tableName, out TableKey tableKey)
         {
-            var result = NativeMethods.get_table(this, tableName, (IntPtr)tableName.Length, out uint tKValue, out var nativeException);
-            tableKeyValue = tKValue;
+            var result = NativeMethods.get_table(this, tableName, (IntPtr)tableName.Length, out TableKey tableKeyValue, out var nativeException);
+            tableKey = tableKeyValue;
             nativeException.ThrowIfNecessary();
             return new TableHandle(this, result);
         }

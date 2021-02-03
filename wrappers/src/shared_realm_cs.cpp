@@ -247,11 +247,12 @@ REALM_EXPORT void shared_realm_close_realm(SharedRealm& realm, NativeException::
     });
 }
 
-REALM_EXPORT TableRef* shared_realm_get_table(SharedRealm& realm, uint16_t* object_type_buf, size_t object_type_len, int &tableKeyValue, NativeException::Marshallable& ex)
+REALM_EXPORT TableRef* shared_realm_get_table(SharedRealm& realm, uint16_t* object_type_buf, size_t object_type_len, TableKey& tableKey, NativeException::Marshallable& ex)
 {
     return handle_errors(ex, [&]() {
         Utf16StringAccessor object_type(object_type_buf, object_type_len);
-        tableKeyValue = ObjectStore::table_key_for_object_type(realm->read_group(), object_type).value;
+        tableKey = ObjectStore::table_key_for_object_type(realm->read_group(), object_type).value;
+        auto tableRef = new TableRef(ObjectStore::table_for_object_type(realm->read_group(), object_type));
         return new TableRef(ObjectStore::table_for_object_type(realm->read_group(), object_type));
     });
 }

@@ -16,15 +16,20 @@
 //
 ////////////////////////////////////////////////////////////////////////////
 
+using System.Runtime.InteropServices;
+
 namespace Realms.Native
 {
-    internal struct TableKey  //TODO We maybe return this directly from native (worth it?)
+    [StructLayout(LayoutKind.Sequential)]  //TODO eventually add equals and other methods
+    internal struct TableKey
     {
-        public uint Value { get; } 
+        private uint value;
+
+        public uint Value => value;
 
         public TableKey(uint value)
         {
-            Value = value;
+            this.value = value;
         }
     }
 }

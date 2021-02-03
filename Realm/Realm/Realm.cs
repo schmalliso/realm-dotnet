@@ -236,6 +236,11 @@ namespace Realms
             {
                 return stringToRealmObjectMetadata[objecttype];
             }
+
+            public RealmObjectBase.Metadata this[string objectType]
+            {
+                get => GetRealmObjectMetadata(objectType);
+            }
         }
 
         [SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "A State can be shared between multiple Realm instances. It is disposed when the native instance and its BindingContext is destroyed")]
@@ -325,7 +330,7 @@ namespace Realms
 
         private RealmObjectBase.Metadata CreateRealmObjectMetadata(ObjectSchema schema)
         {
-            var tableHandle = SharedRealmHandle.GetTable(schema.Name, out var tableKeyValue);
+            var tableHandle = SharedRealmHandle.GetTable(schema.Name, out var tableKey);
             Weaving.IRealmObjectHelper helper;
 
             if (schema.Type != null && !Config.IsDynamic)
@@ -355,7 +360,7 @@ namespace Realms
                 initPropertyMap[prop.Name] = (IntPtr)index;
             }
 
-            return new RealmObjectBase.Metadata(tableHandle, helper, initPropertyMap, schema, new TableKey(tableKeyValue));
+            return new RealmObjectBase.Metadata(tableHandle, helper, initPropertyMap, schema, tableKey);
         }
 
         /// <summary>
