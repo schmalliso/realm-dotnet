@@ -32,6 +32,13 @@ using namespace realm::binding;
 
 extern "C" {
 
+REALM_EXPORT void table_destroy(TableRef* table, NativeException::Marshallable& ex)
+{
+    return handle_errors(ex, [&]() {
+        delete table;
+    });
+}
+
 REALM_EXPORT Object* table_add_empty_object(TableRef& table, SharedRealm& realm, NativeException::Marshallable& ex)
 {
     return handle_errors(ex, [&]() {
