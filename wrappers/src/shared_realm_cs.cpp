@@ -446,4 +446,59 @@ REALM_EXPORT SharedRealm* shared_realm_freeze(const SharedRealm& realm, NativeEx
     });
 }
 
+REALM_EXPORT Object* shared_realm_table_get_object(SharedRealm& realm, TableKey tableKey, ObjKey object_key, NativeException::Marshallable& ex)
+{
+    return handle_errors(ex, [&]() -> Object* {
+        realm->verify_thread();
+
+        Obj obj = realm->read_group().get_table(tableKey)->get_object(object_key);
+        if (!obj) {
+            return nullptr;
+        }
+
+        return new Object(realm, obj);
+    });
+}
+
+REALM_EXPORT Object* shared_realm_table_get_object_for_primarykey(SharedRealm& realm, TableKey tableKey, realm_value_t primitive, NativeException::Marshallable& ex)  //TODO fp name? and maybe position?
+{
+    return handle_errors(ex, [&]() -> Object* {
+        realm->verify_thread();
+
+        auto table = realm->read_group().get_table(tableKey);
+        const std::string object_name(ObjectStore::object_type_for_table_name(table->get_name()));
+        auto& object_schema = *realm->schema().find(object_name);
+        if (object_schema.primary_key.empty()) {
+            const std::string name(table->get_name());
+            throw MissingPrimaryKeyException(name);
+        }
+
+        const Property& primary_key_property = *object_schema.primary_key_property();
+        if (!primary_key_property.type_is_nullable() && primitive.is_null()) {
+            return nullptr;
+        }
+
+        if (!primitive.is_null() && to_capi(primary_key_property.type) != primitive.type) {
+            throw PropertyTypeMismatchException(object_schema.name, primary_key_property.name, to_string(primary_key_property.type), to_string(primitive.type));
+        }
+
+        const ColKey column_key = object_schema.primary_key_property()->column_key;
+        const ObjKey obj_key = table->find_first(column_key, from_capi(primitive));
+        if (!obj_key)
+            return nullptr;
+
+        return new Object(realm, object_schema, table->get_object(obj_key));
+    });
+}
+
+REALM_EXPORT Results* shared_realm_table_create_results(SharedRealm& realm, TableKey tableKey, NativeException::Marshallable& ex)
+{
+    return handle_errors(ex, [&]() {
+        realm->verify_thread();
+
+        auto table = realm->read_group().get_table(tableKey);
+        return new Results(realm, table);
+    });
+}
+
 }

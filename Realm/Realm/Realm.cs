@@ -531,17 +531,6 @@ namespace Realms
             return ret;
         }
 
-        internal RealmObjectBase MakeObject(RealmObjectBase.Metadata metadata, ObjectKey objectKey)
-        {
-            var objectHandle = metadata.Table.Get(SharedRealmHandle, objectKey);
-            if (objectHandle != null)
-            {
-                return MakeObject(metadata, objectHandle);
-            }
-
-            return null;
-        }
-
         /// <summary>
         /// This <see cref="Realm"/> will start managing a <see cref="RealmObject"/> which has been created as a standalone object.
         /// </summary>
@@ -1185,7 +1174,7 @@ namespace Realms
             ThrowIfDisposed();
 
             Metadata.TryGetValue(typeof(T).GetTypeInfo().GetMappedOrOriginalName(), out var metadata);
-            if (metadata.Table.TryFind(SharedRealmHandle, primaryKey, out var objectHandle))
+            if (SharedRealmHandle.TryFind(metadata.TableKey, primaryKey, out var objectHandle))
             {
                 return (T)MakeObject(metadata, objectHandle);
             }
@@ -1366,7 +1355,7 @@ namespace Realms
 
             foreach (var metadata in Metadata.Values)
             {
-                using var resultsHandle = metadata.Table.CreateResults(SharedRealmHandle);
+                using var resultsHandle = SharedRealmHandle.CreateResults(metadata.TableKey);
                 resultsHandle.Clear(SharedRealmHandle);
             }
         }
@@ -1759,7 +1748,7 @@ namespace Realms
                 _realm.ThrowIfDisposed();
 
                 _realm.Metadata.TryGetValue(className, out var metadata);
-                if (metadata.Table.TryFind(_realm.SharedRealmHandle, primaryKey, out var objectHandle))
+                if (_realm.SharedRealmHandle.TryFind(metadata.TableKey, primaryKey, out var objectHandle))
                 {
                     return _realm.MakeObject(metadata, objectHandle);
                 }

@@ -28,17 +28,8 @@ namespace Realms
         {
 #pragma warning disable IDE1006 // Naming Styles
 
-            [DllImport(InteropConfig.DLL_NAME, EntryPoint = "table_destroy", CallingConvention = CallingConvention.Cdecl)]
+            [DllImport(InteropConfig.DLL_NAME, EntryPoint = "table_destroy", CallingConvention = CallingConvention.Cdecl)] 
             public static extern void destroy(IntPtr tableHandle, out NativeException ex);
-
-            [DllImport(InteropConfig.DLL_NAME, EntryPoint = "table_create_results", CallingConvention = CallingConvention.Cdecl)]
-            public static extern IntPtr create_results(TableHandle handle, SharedRealmHandle sharedRealm, out NativeException ex);
-
-            [DllImport(InteropConfig.DLL_NAME, EntryPoint = "table_get_object", CallingConvention = CallingConvention.Cdecl)]
-            public static extern IntPtr get_object(TableHandle table, SharedRealmHandle realm, ObjectKey objectKey, out NativeException ex);
-
-            [DllImport(InteropConfig.DLL_NAME, EntryPoint = "table_get_object_for_primarykey", CallingConvention = CallingConvention.Cdecl)]
-            public static extern IntPtr get_object_for_primarykey(TableHandle handle, SharedRealmHandle realmHandle, PrimitiveValue value, out NativeException ex);
 
 #pragma warning restore IDE1006 // Naming Styles
         }
@@ -52,43 +43,6 @@ namespace Realms
         {
             NativeMethods.destroy(handle, out var nativeException);
             nativeException.ThrowIfNecessary();
-        }
-
-        public ResultsHandle CreateResults(SharedRealmHandle sharedRealmHandle)
-        {
-            var result = NativeMethods.create_results(this, sharedRealmHandle, out var nativeException);
-            nativeException.ThrowIfNecessary();
-            return new ResultsHandle(sharedRealmHandle, result);
-        }
-
-        public ObjectHandle Get(SharedRealmHandle realmHandle, ObjectKey objectKey)
-        {
-            var result = NativeMethods.get_object(this, realmHandle, objectKey, out var nativeException);
-            nativeException.ThrowIfNecessary();
-
-            if (result == IntPtr.Zero)
-            {
-                return null;
-            }
-
-            return new ObjectHandle(realmHandle, result);
-        }
-
-        public unsafe bool TryFind(SharedRealmHandle realmHandle, in RealmValue id, out ObjectHandle objectHandle)
-        {
-            var (primitiveValue, handles) = id.ToNative();
-            var result = NativeMethods.get_object_for_primarykey(this, realmHandle, primitiveValue, out var ex);
-            handles?.Dispose();
-            ex.ThrowIfNecessary();
-
-            if (result == IntPtr.Zero)
-            {
-                objectHandle = null;
-                return false;
-            }
-
-            objectHandle = new ObjectHandle(realmHandle, result);
-            return true;
         }
     }
 }
