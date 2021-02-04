@@ -100,8 +100,8 @@ namespace Realms
             [return: MarshalAs(UnmanagedType.U1)]
             public static extern bool refresh(SharedRealmHandle sharedRealm, out NativeException ex);
 
-            [DllImport(InteropConfig.DLL_NAME, EntryPoint = "shared_realm_get_table", CallingConvention = CallingConvention.Cdecl)]
-            public static extern IntPtr get_table(SharedRealmHandle sharedRealm, [MarshalAs(UnmanagedType.LPWStr)] string tableName, IntPtr tableNameLength, out TableKey tableKey, out NativeException ex);
+            [DllImport(InteropConfig.DLL_NAME, EntryPoint = "shared_realm_get_table_key", CallingConvention = CallingConvention.Cdecl)]
+            public static extern void get_table_key(SharedRealmHandle sharedRealm, [MarshalAs(UnmanagedType.LPWStr)] string tableName, IntPtr tableNameLength, out TableKey tableKey, out NativeException ex);
 
             [DllImport(InteropConfig.DLL_NAME, EntryPoint = "shared_realm_is_same_instance", CallingConvention = CallingConvention.Cdecl)]
             [return: MarshalAs(UnmanagedType.U1)]
@@ -133,10 +133,10 @@ namespace Realms
             public static extern void write_copy(SharedRealmHandle sharedRealm, [MarshalAs(UnmanagedType.LPWStr)] string path, IntPtr path_len, byte[] encryptionKey, out NativeException ex);
 
             [DllImport(InteropConfig.DLL_NAME, EntryPoint = "shared_realm_create_object", CallingConvention = CallingConvention.Cdecl)]
-            public static extern IntPtr create_object(SharedRealmHandle sharedRealm, TableHandle table, out NativeException ex);
+            public static extern IntPtr create_object(SharedRealmHandle sharedRealm, TableKey tableKey, out NativeException ex);
 
             [DllImport(InteropConfig.DLL_NAME, EntryPoint = "shared_realm_create_object_unique", CallingConvention = CallingConvention.Cdecl)]
-            public static extern IntPtr create_object_unique(SharedRealmHandle sharedRealm, TableHandle table, PrimitiveValue value,
+            public static extern IntPtr create_object_unique(SharedRealmHandle sharedRealm, TableKey tableKey, PrimitiveValue value,
                                                              [MarshalAs(UnmanagedType.U1)] bool update,
                                                              [MarshalAs(UnmanagedType.U1)] out bool is_new, out NativeException ex);
 
@@ -157,10 +157,10 @@ namespace Realms
             [DllImport(InteropConfig.DLL_NAME, EntryPoint = "shared_realm_freeze", CallingConvention = CallingConvention.Cdecl)]
             public static extern IntPtr freeze(SharedRealmHandle sharedRealm, out NativeException ex);
 
-            [DllImport(InteropConfig.DLL_NAME, EntryPoint = "shared_realm_table_get_object_for_primarykey", CallingConvention = CallingConvention.Cdecl)] //Can be moved to sharedRealmHandle
+            [DllImport(InteropConfig.DLL_NAME, EntryPoint = "shared_realm_table_get_object_for_primarykey", CallingConvention = CallingConvention.Cdecl)] //TODO NAme? 
             public static extern IntPtr get_object_for_primarykey(SharedRealmHandle realmHandle, TableKey tableKey, PrimitiveValue value, out NativeException ex);
 
-            [DllImport(InteropConfig.DLL_NAME, EntryPoint = "shared_realm_table_create_results", CallingConvention = CallingConvention.Cdecl)] //Can be moved to sharedRealmHandle
+            [DllImport(InteropConfig.DLL_NAME, EntryPoint = "shared_realm_table_create_results", CallingConvention = CallingConvention.Cdecl)]
             public static extern IntPtr create_results(SharedRealmHandle sharedRealm, TableKey tableKey, out NativeException ex);
 
 #pragma warning restore IDE1006 // Naming Styles
@@ -315,12 +315,11 @@ namespace Realms
             return result;
         }
 
-        public TableHandle GetTable(string tableName, out TableKey tableKey)
+        public TableKey GetTableKey(string tableName)
         {
-            var result = NativeMethods.get_table(this, tableName, (IntPtr)tableName.Length, out TableKey tableKeyValue, out var nativeException);
-            tableKey = tableKeyValue;
+            NativeMethods.get_table_key(this, tableName, (IntPtr)tableName.Length, out var tableKey, out var nativeException);
             nativeException.ThrowIfNecessary();
-            return new TableHandle(this, result);
+            return tableKey;
         }
 
         public bool IsSameInstance(SharedRealmHandle other)
@@ -380,14 +379,14 @@ namespace Realms
             nativeException.ThrowIfNecessary();
         }
 
-        public ObjectHandle CreateObject(TableHandle table)
+        public ObjectHandle CreateObject(TableKey tableKey)
         {
-            var result = NativeMethods.create_object(this, table, out NativeException ex);
+            var result = NativeMethods.create_object(this, tableKey, out NativeException ex);
             ex.ThrowIfNecessary();
             return new ObjectHandle(this, result);
         }
 
-        public unsafe ObjectHandle CreateObjectWithPrimaryKey(Property pkProperty, object primaryKey, TableHandle table, string parentType, bool update, out bool isNew)
+        public unsafe ObjectHandle CreateObjectWithPrimaryKey(Property pkProperty, object primaryKey, TableKey tableKey, string parentType, bool update, out bool isNew)
         {
             if (primaryKey == null && !pkProperty.Type.IsNullable())
             {
@@ -404,7 +403,7 @@ namespace Realms
             };
 
             var (primitiveValue, handles) = pkValue.ToNative();
-            var result = NativeMethods.create_object_unique(this, table, primitiveValue, update, out isNew, out var ex);
+            var result = NativeMethods.create_object_unique(this, tableKey, primitiveValue, update, out isNew, out var ex);
             handles?.Dispose();
             ex.ThrowIfNecessary();
             return new ObjectHandle(this, result);

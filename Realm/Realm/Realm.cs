@@ -330,7 +330,7 @@ namespace Realms
 
         private RealmObjectBase.Metadata CreateRealmObjectMetadata(ObjectSchema schema)
         {
-            var tableHandle = SharedRealmHandle.GetTable(schema.Name, out var tableKey);
+            var tableKey = SharedRealmHandle.GetTableKey(schema.Name);
             Weaving.IRealmObjectHelper helper;
 
             if (schema.Type != null && !Config.IsDynamic)
@@ -360,7 +360,7 @@ namespace Realms
                 initPropertyMap[prop.Name] = (IntPtr)index;
             }
 
-            return new RealmObjectBase.Metadata(tableHandle, helper, initPropertyMap, schema, tableKey);
+            return new RealmObjectBase.Metadata(tableKey, helper, initPropertyMap, schema);
         }
 
         /// <summary>
@@ -650,12 +650,12 @@ namespace Realms
             if (metadata.Helper.TryGetPrimaryKeyValue(obj, out var primaryKey))
             {
                 var pkProperty = metadata.Schema.PrimaryKeyProperty.Value;
-                objectHandle = SharedRealmHandle.CreateObjectWithPrimaryKey(pkProperty, primaryKey, metadata.Table, objectName, update, out isNew);
+                objectHandle = SharedRealmHandle.CreateObjectWithPrimaryKey(pkProperty, primaryKey, metadata.TableKey, objectName, update, out isNew);
             }
             else
             {
                 isNew = true; // Objects without PK are always new
-                objectHandle = SharedRealmHandle.CreateObject(metadata.Table);
+                objectHandle = SharedRealmHandle.CreateObject(metadata.TableKey);
             }
 
             obj.SetOwner(this, objectHandle, metadata);
@@ -1546,11 +1546,11 @@ namespace Realms
                 var pkProperty = metadata.Schema.PrimaryKeyProperty;
                 if (pkProperty.HasValue)
                 {
-                    objectHandle = _realm.SharedRealmHandle.CreateObjectWithPrimaryKey(pkProperty.Value, primaryKey, metadata.Table, className, update: false, isNew: out var _);
+                    objectHandle = _realm.SharedRealmHandle.CreateObjectWithPrimaryKey(pkProperty.Value, primaryKey, metadata.TableKey, className, update: false, isNew: out var _);
                 }
                 else
                 {
-                    objectHandle = _realm.SharedRealmHandle.CreateObject(metadata.Table);
+                    objectHandle = _realm.SharedRealmHandle.CreateObject(metadata.TableKey);
                 }
 
                 result.SetOwner(_realm, objectHandle, metadata);

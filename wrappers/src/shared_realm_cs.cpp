@@ -247,13 +247,12 @@ REALM_EXPORT void shared_realm_close_realm(SharedRealm& realm, NativeException::
     });
 }
 
-REALM_EXPORT TableRef* shared_realm_get_table(SharedRealm& realm, uint16_t* object_type_buf, size_t object_type_len, TableKey& tableKey, NativeException::Marshallable& ex)
+REALM_EXPORT void shared_realm_get_table_key(SharedRealm& realm, uint16_t* object_type_buf, size_t object_type_len, TableKey& tableKey, NativeException::Marshallable& ex)
 {
     return handle_errors(ex, [&]() {
         Utf16StringAccessor object_type(object_type_buf, object_type_len);
-        auto tableRef = ObjectStore::table_for_object_type(realm->read_group(), object_type);
-        tableKey = tableRef->get_key();
-        return new TableRef(tableRef);
+        tableKey = ObjectStore::table_for_object_type(realm->read_group(), object_type)->get_key();
+        return;
     });
 }
 
@@ -356,20 +355,23 @@ REALM_EXPORT void shared_realm_write_copy(SharedRealm* realm, uint16_t* path, si
     });
 }
 
-REALM_EXPORT Object* shared_realm_create_object(SharedRealm& realm, TableRef& table, NativeException::Marshallable& ex)
+REALM_EXPORT Object* shared_realm_create_object(SharedRealm& realm, TableKey tableKey, NativeException::Marshallable& ex)
 {
     return handle_errors(ex, [&]() {
         realm->verify_in_write();
 
-        return new Object(realm, table->create_object());
+        return new Object(realm, realm->read_group().get_table(tableKey)->create_object());
     });
 }
 
-REALM_EXPORT Object* shared_realm_create_object_unique(const SharedRealm& realm, TableRef& table, realm_value_t primitive, bool try_update, bool& is_new, NativeException::Marshallable& ex)
+REALM_EXPORT Object* shared_realm_create_object_unique(const SharedRealm& realm, TableKey tableKey, realm_value_t primitive, bool try_update, bool& is_new, NativeException::Marshallable& ex)
 {
     return handle_errors(ex, [&]() {
         realm->verify_in_write();
         realm->read_group();
+
+        auto table = realm->read_group().get_table(tableKey);
+
         const StringData object_name(ObjectStore::object_type_for_table_name(table->get_name()));
         const ObjectSchema& object_schema = *realm->schema().find(object_name);
 
