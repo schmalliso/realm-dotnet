@@ -251,9 +251,9 @@ REALM_EXPORT TableRef* shared_realm_get_table(SharedRealm& realm, uint16_t* obje
 {
     return handle_errors(ex, [&]() {
         Utf16StringAccessor object_type(object_type_buf, object_type_len);
-        tableKey = ObjectStore::table_key_for_object_type(realm->read_group(), object_type).value;
-        auto tableRef = new TableRef(ObjectStore::table_for_object_type(realm->read_group(), object_type));
-        return new TableRef(ObjectStore::table_for_object_type(realm->read_group(), object_type));
+        auto tableRef = ObjectStore::table_for_object_type(realm->read_group(), object_type);
+        tableKey = tableRef->get_key();
+        return new TableRef(tableRef);
     });
 }
 

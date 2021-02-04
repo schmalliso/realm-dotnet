@@ -232,9 +232,9 @@ namespace Realms
                 return tableKeyToRealmObjectMetadata[tablekey];
             }
 
-            public RealmObjectBase.Metadata GetRealmObjectMetadata(string objecttype)
+            public RealmObjectBase.Metadata GetRealmObjectMetadata(string objectType)
             {
-                return stringToRealmObjectMetadata[objecttype];
+                return stringToRealmObjectMetadata[objectType];
             }
 
             public RealmObjectBase.Metadata this[string objectType]
@@ -1173,7 +1173,7 @@ namespace Realms
         {
             ThrowIfDisposed();
 
-            Metadata.TryGetValue(typeof(T).GetTypeInfo().GetMappedOrOriginalName(), out var metadata);
+            var metadata = Metadata[typeof(T).GetTypeInfo().GetMappedOrOriginalName()]; 
             if (SharedRealmHandle.TryFind(metadata.TableKey, primaryKey, out var objectHandle))
             {
                 return (T)MakeObject(metadata, objectHandle);
