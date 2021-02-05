@@ -247,11 +247,11 @@ REALM_EXPORT void shared_realm_close_realm(SharedRealm& realm, NativeException::
     });
 }
 
-REALM_EXPORT void shared_realm_get_table_key(SharedRealm& realm, uint16_t* object_type_buf, size_t object_type_len, TableKey& tableKey, NativeException::Marshallable& ex)
+REALM_EXPORT void shared_realm_get_table_key(SharedRealm& realm, uint16_t* object_type_buf, size_t object_type_len, TableKey& table_key, NativeException::Marshallable& ex)
 {
     return handle_errors(ex, [&]() {
         Utf16StringAccessor object_type(object_type_buf, object_type_len);
-        tableKey = ObjectStore::table_for_object_type(realm->read_group(), object_type)->get_key();
+        table_key = ObjectStore::table_for_object_type(realm->read_group(), object_type)->get_key();
         return;
     });
 }
@@ -355,22 +355,22 @@ REALM_EXPORT void shared_realm_write_copy(SharedRealm* realm, uint16_t* path, si
     });
 }
 
-REALM_EXPORT Object* shared_realm_create_object(SharedRealm& realm, TableKey tableKey, NativeException::Marshallable& ex)
+REALM_EXPORT Object* shared_realm_create_object(SharedRealm& realm, TableKey table_key, NativeException::Marshallable& ex)
 {
     return handle_errors(ex, [&]() {
         realm->verify_in_write();
 
-        return new Object(realm, realm->read_group().get_table(tableKey)->create_object());
+        return new Object(realm, realm->read_group().get_table(table_key)->create_object());
     });
 }
 
-REALM_EXPORT Object* shared_realm_create_object_unique(const SharedRealm& realm, TableKey tableKey, realm_value_t primitive, bool try_update, bool& is_new, NativeException::Marshallable& ex)
+REALM_EXPORT Object* shared_realm_create_object_unique(const SharedRealm& realm, TableKey table_key, realm_value_t primitive, bool try_update, bool& is_new, NativeException::Marshallable& ex)
 {
     return handle_errors(ex, [&]() {
         realm->verify_in_write();
         realm->read_group();
 
-        auto table = realm->read_group().get_table(tableKey);
+        auto table = realm->read_group().get_table(table_key);
 
         const StringData object_name(ObjectStore::object_type_for_table_name(table->get_name()));
         const ObjectSchema& object_schema = *realm->schema().find(object_name);
@@ -448,14 +448,14 @@ REALM_EXPORT SharedRealm* shared_realm_freeze(const SharedRealm& realm, NativeEx
     });
 }
 
-REALM_EXPORT Object* shared_realm_get_object_for_primary_key(SharedRealm& realm, TableKey tableKey, realm_value_t primitive, NativeException::Marshallable& ex)
+REALM_EXPORT Object* shared_realm_get_object_for_primary_key(SharedRealm& realm, TableKey table_key, realm_value_t primitive, NativeException::Marshallable& ex)
 {
     return handle_errors(ex, [&]() -> Object* {
         realm->verify_thread();
 
-        auto table = realm->read_group().get_table(tableKey);
-        const std::string object_name(ObjectStore::object_type_for_table_name(table->get_name()));
-        auto& object_schema = *realm->schema().find(object_name);
+        auto table = realm->read_group().get_table(table_key);
+        const std::string object_name(ObjectStore::object_type_for_table_name(table->get_name()));  
+        auto& object_schema = *realm->schema().find(object_name); //TODO all of this can be simplified if we have one method that returns the object schema given the table key
         if (object_schema.primary_key.empty()) {
             const std::string name(table->get_name());
             throw MissingPrimaryKeyException(name);
@@ -479,12 +479,12 @@ REALM_EXPORT Object* shared_realm_get_object_for_primary_key(SharedRealm& realm,
     });
 }
 
-REALM_EXPORT Results* shared_realm_create_results(SharedRealm& realm, TableKey tableKey, NativeException::Marshallable& ex)
+REALM_EXPORT Results* shared_realm_create_results(SharedRealm& realm, TableKey table_key, NativeException::Marshallable& ex)
 {
     return handle_errors(ex, [&]() {
         realm->verify_thread();
 
-        auto table = realm->read_group().get_table(tableKey);
+        auto table = realm->read_group().get_table(table_key);
         return new Results(realm, table);
     });
 }

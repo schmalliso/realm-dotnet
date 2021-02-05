@@ -34,13 +34,13 @@ REALM_EXPORT void sort_descriptor_destroy(DescriptorOrdering* descriptor)
     delete descriptor;
 }
 
-REALM_EXPORT void sort_descriptor_add_clause(DescriptorOrdering& descriptor, TableKey tableKey, SharedRealm& realm, size_t* property_chain, size_t properties_count, bool ascending, NativeException::Marshallable& ex)
+REALM_EXPORT void sort_descriptor_add_clause(DescriptorOrdering& descriptor, TableKey table_key, SharedRealm& realm, size_t* property_chain, size_t properties_count, bool ascending, NativeException::Marshallable& ex)
 {
     handle_errors(ex, [&]() {
         std::vector<ColKey> column_keys;
         column_keys.reserve(properties_count);
 
-        const std::string object_name(ObjectStore::object_type_for_table_name(realm->read_group().get_table(tableKey)->get_name()));
+        const std::string object_name(ObjectStore::object_type_for_table_name(realm->read_group().get_table(table_key)->get_name()));
         const std::vector<Property>* properties = &realm->schema().find(object_name)->persisted_properties;
 
         for (size_t i = 0; i < properties_count; ++i) {

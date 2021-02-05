@@ -154,12 +154,12 @@ extern "C" {
         });
     }
 
-    REALM_EXPORT Results* object_get_backlinks_for_type(Object& object, TableKey tableKey, size_t source_property_ndx, NativeException::Marshallable& ex)
+    REALM_EXPORT Results* object_get_backlinks_for_type(Object& object, TableKey table_key, size_t source_property_ndx, NativeException::Marshallable& ex)
     {
         return handle_errors(ex, [&] {
             verify_can_get(object);
 
-            auto source_table = object.realm()->read_group().get_table(tableKey);
+            auto source_table = object.realm()->read_group().get_table(table_key);
 
             const ObjectSchema& source_object_schema = *object.realm()->schema().find(ObjectStore::object_type_for_table_name(source_table->get_name()));
             const Property& source_property = source_object_schema.persisted_properties[source_property_ndx];
