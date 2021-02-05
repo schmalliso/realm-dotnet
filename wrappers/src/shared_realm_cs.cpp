@@ -448,21 +448,7 @@ REALM_EXPORT SharedRealm* shared_realm_freeze(const SharedRealm& realm, NativeEx
     });
 }
 
-REALM_EXPORT Object* shared_realm_table_get_object(SharedRealm& realm, TableKey tableKey, ObjKey object_key, NativeException::Marshallable& ex)
-{
-    return handle_errors(ex, [&]() -> Object* {
-        realm->verify_thread();
-
-        Obj obj = realm->read_group().get_table(tableKey)->get_object(object_key);
-        if (!obj) {
-            return nullptr;
-        }
-
-        return new Object(realm, obj);
-    });
-}
-
-REALM_EXPORT Object* shared_realm_get_object_for_primary_key(SharedRealm& realm, TableKey tableKey, realm_value_t primitive, NativeException::Marshallable& ex)  //TODO fp name? and maybe position?
+REALM_EXPORT Object* shared_realm_get_object_for_primary_key(SharedRealm& realm, TableKey tableKey, realm_value_t primitive, NativeException::Marshallable& ex)
 {
     return handle_errors(ex, [&]() -> Object* {
         realm->verify_thread();

@@ -1128,7 +1128,7 @@ namespace Realms
         {
             ThrowIfDisposed();
 
-            var metadata = Metadata[typeof(T).GetTypeInfo().GetMappedOrOriginalName()]; 
+            var metadata = Metadata[typeof(T).GetTypeInfo().GetMappedOrOriginalName()];
             if (SharedRealmHandle.TryFindObject(metadata.TableKey, primaryKey, out var objectHandle))
             {
                 return (T)MakeObject(metadata, objectHandle);
@@ -1361,41 +1361,41 @@ namespace Realms
 
         internal class RealmMetadata
         {
-            private readonly Dictionary<string, RealmObjectBase.Metadata> stringToRealmObjectMetadata;
-            private readonly Dictionary<TableKey, RealmObjectBase.Metadata> tableKeyToRealmObjectMetadata;
+            private readonly Dictionary<string, RealmObjectBase.Metadata> stringToRealmObjectMetadataDict;
+            private readonly Dictionary<TableKey, RealmObjectBase.Metadata> tableKeyToRealmObjectMetadataDict;
 
-            public IEnumerable<RealmObjectBase.Metadata> Values => stringToRealmObjectMetadata.Values;
+            public IEnumerable<RealmObjectBase.Metadata> Values => stringToRealmObjectMetadataDict.Values;
 
             public RealmMetadata(IEnumerable<RealmObjectBase.Metadata> objectsMetadata)
             {
-                stringToRealmObjectMetadata = new Dictionary<string, RealmObjectBase.Metadata>();
-                tableKeyToRealmObjectMetadata = new Dictionary<TableKey, RealmObjectBase.Metadata>();
+                stringToRealmObjectMetadataDict = new Dictionary<string, RealmObjectBase.Metadata>();
+                tableKeyToRealmObjectMetadataDict = new Dictionary<TableKey, RealmObjectBase.Metadata>();
 
                 foreach (var objectMetadata in objectsMetadata)
                 {
-                    stringToRealmObjectMetadata[objectMetadata.Schema.Name] = objectMetadata;
-                    tableKeyToRealmObjectMetadata[objectMetadata.TableKey] = objectMetadata;
+                    stringToRealmObjectMetadataDict[objectMetadata.Schema.Name] = objectMetadata;
+                    tableKeyToRealmObjectMetadataDict[objectMetadata.TableKey] = objectMetadata;
                 }
             }
 
             public bool TryGetValue(string objectType, out RealmObjectBase.Metadata metadata)
             {
-                return stringToRealmObjectMetadata.TryGetValue(objectType, out metadata);
+                return stringToRealmObjectMetadataDict.TryGetValue(objectType, out metadata);
             }
 
             public bool TryGetValue(TableKey tablekey, out RealmObjectBase.Metadata metadata)
             {
-                return tableKeyToRealmObjectMetadata.TryGetValue(tablekey, out metadata);
+                return tableKeyToRealmObjectMetadataDict.TryGetValue(tablekey, out metadata);
             }
 
             public RealmObjectBase.Metadata this[string objectType]
             {
-                get => stringToRealmObjectMetadata[objectType];
+                get => stringToRealmObjectMetadataDict[objectType];
             }
 
             public RealmObjectBase.Metadata this[TableKey tablekey]
             {
-                get => tableKeyToRealmObjectMetadata[tablekey];
+                get => tableKeyToRealmObjectMetadataDict[tablekey];
             }
         }
 
@@ -1742,7 +1742,7 @@ namespace Realms
             {
                 _realm.ThrowIfDisposed();
 
-                _realm.Metadata.TryGetValue(className, out var metadata);
+                var metadata = _realm.Metadata[className];
                 if (_realm.SharedRealmHandle.TryFindObject(metadata.TableKey, primaryKey, out var objectHandle))
                 {
                     return _realm.MakeObject(metadata, objectHandle);
