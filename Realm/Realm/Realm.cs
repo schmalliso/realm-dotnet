@@ -197,51 +197,6 @@ namespace Realms
         }
 
         #endregion static
-       
-        internal class RealmMetadata //The name needs to be changed, and it needs to be moved down
-        {
-            private readonly Dictionary<string, RealmObjectBase.Metadata> stringToRealmObjectMetadata;
-            private readonly Dictionary<TableKey, RealmObjectBase.Metadata> tableKeyToRealmObjectMetadata;
-
-            public IEnumerable<RealmObjectBase.Metadata> Values => stringToRealmObjectMetadata.Values;
-
-            public RealmMetadata(IEnumerable<RealmObjectBase.Metadata> objectsMetadata)
-            {
-                stringToRealmObjectMetadata = new Dictionary<string, RealmObjectBase.Metadata>();
-                tableKeyToRealmObjectMetadata = new Dictionary<TableKey, RealmObjectBase.Metadata>();
-
-                foreach (var objectMetadata in objectsMetadata)
-                {
-                    stringToRealmObjectMetadata[objectMetadata.Schema.Name] = objectMetadata;
-                    tableKeyToRealmObjectMetadata[objectMetadata.TableKey] = objectMetadata;
-                }
-            }
-
-            public bool TryGetValue(TableKey tablekey, out RealmObjectBase.Metadata metadata)
-            {
-                return tableKeyToRealmObjectMetadata.TryGetValue(tablekey, out metadata);
-            }
-
-            public bool TryGetValue(string objectType, out RealmObjectBase.Metadata metadata)
-            {
-                return stringToRealmObjectMetadata.TryGetValue(objectType, out metadata);
-            }
-
-            public RealmObjectBase.Metadata GetRealmObjectMetadata(TableKey tablekey)
-            {
-                return tableKeyToRealmObjectMetadata[tablekey];
-            }
-
-            public RealmObjectBase.Metadata GetRealmObjectMetadata(string objectType)
-            {
-                return stringToRealmObjectMetadata[objectType];
-            }
-
-            public RealmObjectBase.Metadata this[string objectType]
-            {
-                get => GetRealmObjectMetadata(objectType);
-            }
-        }
 
         [SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "A State can be shared between multiple Realm instances. It is disposed when the native instance and its BindingContext is destroyed")]
         private State _state;
@@ -322,7 +277,7 @@ namespace Realms
             DynamicApi = new Dynamic(this);
         }
 
-        private RealmMetadata CreateRealmMetadata(RealmSchema realmSchema)  //TODO This could be removed...
+        private RealmMetadata CreateRealmMetadata(RealmSchema realmSchema)
         {
             var objectsMetadata = realmSchema.Select(CreateRealmObjectMetadata);
             return new RealmMetadata(objectsMetadata);
@@ -1403,6 +1358,46 @@ namespace Realms
         }
 
         #endregion Transactions
+
+        internal class RealmMetadata
+        {
+            private readonly Dictionary<string, RealmObjectBase.Metadata> stringToRealmObjectMetadata;
+            private readonly Dictionary<TableKey, RealmObjectBase.Metadata> tableKeyToRealmObjectMetadata;
+
+            public IEnumerable<RealmObjectBase.Metadata> Values => stringToRealmObjectMetadata.Values;
+
+            public RealmMetadata(IEnumerable<RealmObjectBase.Metadata> objectsMetadata)
+            {
+                stringToRealmObjectMetadata = new Dictionary<string, RealmObjectBase.Metadata>();
+                tableKeyToRealmObjectMetadata = new Dictionary<TableKey, RealmObjectBase.Metadata>();
+
+                foreach (var objectMetadata in objectsMetadata)
+                {
+                    stringToRealmObjectMetadata[objectMetadata.Schema.Name] = objectMetadata;
+                    tableKeyToRealmObjectMetadata[objectMetadata.TableKey] = objectMetadata;
+                }
+            }
+
+            public bool TryGetValue(string objectType, out RealmObjectBase.Metadata metadata)
+            {
+                return stringToRealmObjectMetadata.TryGetValue(objectType, out metadata);
+            }
+
+            public bool TryGetValue(TableKey tablekey, out RealmObjectBase.Metadata metadata)
+            {
+                return tableKeyToRealmObjectMetadata.TryGetValue(tablekey, out metadata);
+            }
+
+            public RealmObjectBase.Metadata this[string objectType]
+            {
+                get => stringToRealmObjectMetadata[objectType];
+            }
+
+            public RealmObjectBase.Metadata this[TableKey tablekey]
+            {
+                get => tableKeyToRealmObjectMetadata[tablekey];
+            }
+        }
 
         internal class State : IDisposable
         {
