@@ -1378,25 +1378,15 @@ namespace Realms
                 }
             }
 
-            public bool TryGetValue(string objectType, out RealmObjectBase.Metadata metadata)
-            {
-                return stringToRealmObjectMetadataDict.TryGetValue(objectType, out metadata);
-            }
+            public bool TryGetValue(string objectType, out RealmObjectBase.Metadata metadata) =>
+                stringToRealmObjectMetadataDict.TryGetValue(objectType, out metadata);
 
-            public bool TryGetValue(TableKey tablekey, out RealmObjectBase.Metadata metadata)
-            {
-                return tableKeyToRealmObjectMetadataDict.TryGetValue(tablekey, out metadata);
-            }
+            public bool TryGetValue(TableKey tablekey, out RealmObjectBase.Metadata metadata) =>
+                tableKeyToRealmObjectMetadataDict.TryGetValue(tablekey, out metadata);
 
-            public RealmObjectBase.Metadata this[string objectType]
-            {
-                get => stringToRealmObjectMetadataDict[objectType];
-            }
+            public RealmObjectBase.Metadata this[string objectType] => stringToRealmObjectMetadataDict[objectType];
 
-            public RealmObjectBase.Metadata this[TableKey tablekey]
-            {
-                get => tableKeyToRealmObjectMetadataDict[tablekey];
-            }
+            public RealmObjectBase.Metadata this[TableKey tablekey] => tableKeyToRealmObjectMetadataDict[tablekey];
         }
 
         internal class State : IDisposable

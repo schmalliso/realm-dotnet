@@ -26,8 +26,6 @@ namespace Realms.Native
     {
         private uint value;
 
-        public uint Value => value;
-
         public TableKey(uint value)
         {
             this.value = value;
