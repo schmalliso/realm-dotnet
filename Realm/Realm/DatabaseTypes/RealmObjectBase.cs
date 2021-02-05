@@ -438,10 +438,10 @@ namespace Realms
 
             public Metadata(TableKey tableKey, IRealmObjectHelper helper, IDictionary<string, IntPtr> propertyIndices, ObjectSchema schema)
             {
+                TableKey = tableKey;
                 Helper = helper;
                 PropertyIndices = new ReadOnlyDictionary<string, IntPtr>(propertyIndices);
                 Schema = schema;
-                TableKey = tableKey;
             }
         }
     }

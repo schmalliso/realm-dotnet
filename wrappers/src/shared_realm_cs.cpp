@@ -462,7 +462,7 @@ REALM_EXPORT Object* shared_realm_table_get_object(SharedRealm& realm, TableKey 
     });
 }
 
-REALM_EXPORT Object* shared_realm_table_get_object_for_primarykey(SharedRealm& realm, TableKey tableKey, realm_value_t primitive, NativeException::Marshallable& ex)  //TODO fp name? and maybe position?
+REALM_EXPORT Object* shared_realm_get_object_for_primary_key(SharedRealm& realm, TableKey tableKey, realm_value_t primitive, NativeException::Marshallable& ex)  //TODO fp name? and maybe position?
 {
     return handle_errors(ex, [&]() -> Object* {
         realm->verify_thread();
@@ -493,7 +493,7 @@ REALM_EXPORT Object* shared_realm_table_get_object_for_primarykey(SharedRealm& r
     });
 }
 
-REALM_EXPORT Results* shared_realm_table_create_results(SharedRealm& realm, TableKey tableKey, NativeException::Marshallable& ex)
+REALM_EXPORT Results* shared_realm_create_results(SharedRealm& realm, TableKey tableKey, NativeException::Marshallable& ex)
 {
     return handle_errors(ex, [&]() {
         realm->verify_thread();

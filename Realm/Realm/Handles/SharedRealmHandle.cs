@@ -157,10 +157,10 @@ namespace Realms
             [DllImport(InteropConfig.DLL_NAME, EntryPoint = "shared_realm_freeze", CallingConvention = CallingConvention.Cdecl)]
             public static extern IntPtr freeze(SharedRealmHandle sharedRealm, out NativeException ex);
 
-            [DllImport(InteropConfig.DLL_NAME, EntryPoint = "shared_realm_table_get_object_for_primarykey", CallingConvention = CallingConvention.Cdecl)] //TODO NAme? 
-            public static extern IntPtr get_object_for_primarykey(SharedRealmHandle realmHandle, TableKey tableKey, PrimitiveValue value, out NativeException ex);
+            [DllImport(InteropConfig.DLL_NAME, EntryPoint = "shared_realm_get_object_for_primary_key", CallingConvention = CallingConvention.Cdecl)]
+            public static extern IntPtr get_object_for_primary_key(SharedRealmHandle realmHandle, TableKey tableKey, PrimitiveValue value, out NativeException ex);
 
-            [DllImport(InteropConfig.DLL_NAME, EntryPoint = "shared_realm_table_create_results", CallingConvention = CallingConvention.Cdecl)]
+            [DllImport(InteropConfig.DLL_NAME, EntryPoint = "shared_realm_create_results", CallingConvention = CallingConvention.Cdecl)]
             public static extern IntPtr create_results(SharedRealmHandle sharedRealm, TableKey tableKey, out NativeException ex);
 
 #pragma warning restore IDE1006 // Naming Styles
@@ -191,31 +191,6 @@ namespace Realms
         protected override void Unbind()
         {
             NativeMethods.destroy(handle);
-        }
-
-        public unsafe bool TryFind(TableKey tableKey, in RealmValue id, out ObjectHandle objectHandle)  //TODO change name and position
-        {
-            var (primitiveValue, handles) = id.ToNative();
-            var result = NativeMethods.get_object_for_primarykey(this, tableKey, primitiveValue, out var ex);
-            handles?.Dispose();
-            ex.ThrowIfNecessary();
-
-            if (result == IntPtr.Zero)
-            {
-                objectHandle = null;
-                return false;
-            }
-
-            objectHandle = new ObjectHandle(this, result);
-            return true;
-        }
-
-
-        public ResultsHandle CreateResults(TableKey tableKey)
-        {
-            var result = NativeMethods.create_results(this, tableKey, out var nativeException);
-            nativeException.ThrowIfNecessary();
-            return new ResultsHandle(this, result);
         }
 
         public static IntPtr Open(Configuration configuration, RealmSchema schema, byte[] encryptionKey)
@@ -419,6 +394,30 @@ namespace Realms
             var result = NativeMethods.freeze(this, out var nativeException);
             nativeException.ThrowIfNecessary();
             return new SharedRealmHandle(result);
+        }
+
+        public unsafe bool TryFindObject(TableKey tableKey, in RealmValue id, out ObjectHandle objectHandle)
+        {
+            var (primitiveValue, handles) = id.ToNative();
+            var result = NativeMethods.get_object_for_primary_key(this, tableKey, primitiveValue, out var ex);
+            handles?.Dispose();
+            ex.ThrowIfNecessary();
+
+            if (result == IntPtr.Zero)
+            {
+                objectHandle = null;
+                return false;
+            }
+
+            objectHandle = new ObjectHandle(this, result);
+            return true;
+        }
+
+        public ResultsHandle CreateResults(TableKey tableKey)
+        {
+            var result = NativeMethods.create_results(this, tableKey, out var nativeException);
+            nativeException.ThrowIfNecessary();
+            return new ResultsHandle(this, result);
         }
 
         [MonoPInvokeCallback(typeof(NativeMethods.GetNativeSchemaCallback))]

@@ -1174,7 +1174,7 @@ namespace Realms
             ThrowIfDisposed();
 
             var metadata = Metadata[typeof(T).GetTypeInfo().GetMappedOrOriginalName()]; 
-            if (SharedRealmHandle.TryFind(metadata.TableKey, primaryKey, out var objectHandle))
+            if (SharedRealmHandle.TryFindObject(metadata.TableKey, primaryKey, out var objectHandle))
             {
                 return (T)MakeObject(metadata, objectHandle);
             }
@@ -1748,7 +1748,7 @@ namespace Realms
                 _realm.ThrowIfDisposed();
 
                 _realm.Metadata.TryGetValue(className, out var metadata);
-                if (_realm.SharedRealmHandle.TryFind(metadata.TableKey, primaryKey, out var objectHandle))
+                if (_realm.SharedRealmHandle.TryFindObject(metadata.TableKey, primaryKey, out var objectHandle))
                 {
                     return _realm.MakeObject(metadata, objectHandle);
                 }
