@@ -104,6 +104,8 @@ Realm::Config get_shared_realm_config(Configuration configuration, SyncConfigura
 
 extern "C" {
 
+typedef uint32_t realm_table_key;
+
 REALM_EXPORT void shared_realm_install_callbacks(decltype(s_realm_changed) realm_changed, decltype(s_get_native_schema) get_schema, decltype(s_open_realm_callback) open_callback, decltype(s_on_binding_context_destructed) on_binding_context_destructed)
 {
     s_realm_changed = realm_changed;
@@ -247,11 +249,11 @@ REALM_EXPORT void shared_realm_close_realm(SharedRealm& realm, NativeException::
     });
 }
 
-REALM_EXPORT TableKey shared_realm_get_table_key(SharedRealm& realm, uint16_t* object_type_buf, size_t object_type_len, NativeException::Marshallable& ex)  //TODO need to change this to do what Nikola was suggesting! typedef uint32_t realm_class_key_t;
+REALM_EXPORT realm_table_key shared_realm_get_table_key(SharedRealm& realm, uint16_t* object_type_buf, size_t object_type_len, NativeException::Marshallable& ex)
 {
     return handle_errors(ex, [&]() {
         Utf16StringAccessor object_type(object_type_buf, object_type_len);
-        return ObjectStore::table_for_object_type(realm->read_group(), object_type)->get_key();
+        return ObjectStore::table_for_object_type(realm->read_group(), object_type)->get_key().value;
     });
 }
 
