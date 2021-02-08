@@ -17,14 +17,14 @@
 ////////////////////////////////////////////////////////////////////////////
 
 
-#include "shared_realm_cs.hpp"
 #include "error_handling.hpp"
-#include "realm_export_decls.hpp"
 #include "marshalling.hpp"
+#include "realm_export_decls.hpp"
+#include "shared_realm_cs.hpp"
 
+#include <realm.hpp>
 #include <realm/object-store/object_store.hpp>
 #include <realm/object-store/binding_context.hpp>
-#include <realm.hpp>
 #include <realm/object-store/object_accessor.hpp>
 #include <realm/object-store/thread_safe_reference.hpp>
 #include <realm/object-store/sync/async_open_task.hpp>
@@ -361,7 +361,7 @@ REALM_EXPORT Object* shared_realm_create_object(SharedRealm& realm, TableKey tab
     return handle_errors(ex, [&]() {
         realm->verify_in_write();
 
-        return new Object(realm, realm->read_group().get_table(table_key)->create_object());
+        return new Object(realm, get_table(realm, table_key)->create_object());
     });
 }
 
@@ -369,9 +369,9 @@ REALM_EXPORT Object* shared_realm_create_object_unique(const SharedRealm& realm,
 {
     return handle_errors(ex, [&]() {
         realm->verify_in_write();
-        realm->read_group();
+        realm->read_group();  //TODO can be removed?
 
-        auto table = realm->read_group().get_table(table_key);
+        const TableRef table = get_table(realm, table_key);
 
         const StringData object_name(ObjectStore::object_type_for_table_name(table->get_name()));
         const ObjectSchema& object_schema = *realm->schema().find(object_name);
@@ -454,11 +454,11 @@ REALM_EXPORT Object* shared_realm_get_object_for_primary_key(SharedRealm& realm,
     return handle_errors(ex, [&]() -> Object* {
         realm->verify_thread();
 
-        auto table = realm->read_group().get_table(table_key);
+        const TableRef table = get_table(realm, table_key);
         const std::string object_name(ObjectStore::object_type_for_table_name(table->get_name()));  
         auto& object_schema = *realm->schema().find(object_name); //TODO all of this can be simplified if we have one method that returns the object schema given the table key
         if (object_schema.primary_key.empty()) {
-            const std::string name(table->get_name());
+            const std::string name(ObjectStore::object_type_for_table_name(table->get_name()));
             throw MissingPrimaryKeyException(name);
         }
 
@@ -485,7 +485,7 @@ REALM_EXPORT Results* shared_realm_create_results(SharedRealm& realm, TableKey t
     return handle_errors(ex, [&]() {
         realm->verify_thread();
 
-        auto table = realm->read_group().get_table(table_key);
+        const TableRef table = get_table(realm, table_key);
         return new Results(realm, table);
     });
 }

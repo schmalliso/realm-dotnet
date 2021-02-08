@@ -16,12 +16,12 @@
 //
 ////////////////////////////////////////////////////////////////////////////
 
-#include "object_cs.hpp"
-#include "timestamp_helpers.hpp"
-#include "notifications_cs.hpp"
 #include "error_handling.hpp"
 #include "marshalling.hpp"
+#include "notifications_cs.hpp"
+#include "object_cs.hpp"
 #include "realm_export_decls.hpp"
+#include "timestamp_helpers.hpp"
 
 #include <realm.hpp>
 #include <realm/object-store/object_accessor.hpp>
@@ -31,7 +31,7 @@ using namespace realm;
 using namespace realm::binding;
 
 template <typename T>
-inline void object_set(Object& object, size_t property_ndx, const T& value, NativeException::Marshallable& ex)
+inline void object_set(Object& object, size_t property_ndx, const T& value, NativeException::Marshallable& ex)  //TODO it seems it can be removed
 {
     return handle_errors(ex, [&]() {
         verify_can_set(object);
@@ -159,7 +159,7 @@ extern "C" {
         return handle_errors(ex, [&] {
             verify_can_get(object);
 
-            auto source_table = object.realm()->read_group().get_table(table_key);
+            const TableRef source_table = get_table(object.realm(), table_key);
 
             const ObjectSchema& source_object_schema = *object.realm()->schema().find(ObjectStore::object_type_for_table_name(source_table->get_name()));
             const Property& source_property = source_object_schema.persisted_properties[source_property_ndx];

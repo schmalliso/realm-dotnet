@@ -16,13 +16,14 @@
 //
 ////////////////////////////////////////////////////////////////////////////
 
-#include <realm.hpp>
-#include "marshalling.hpp"
 #include "error_handling.hpp"
+#include "marshalling.hpp"
 #include "realm_export_decls.hpp"
+#include "shared_realm_cs.hpp"
+
+#include <realm.hpp>
 #include <realm/object-store/shared_realm.hpp>
 #include <realm/object-store/schema.hpp>
-
 
 using namespace realm;
 using namespace realm::binding;
@@ -40,7 +41,7 @@ REALM_EXPORT void sort_descriptor_add_clause(DescriptorOrdering& descriptor, Tab
         std::vector<ColKey> column_keys;
         column_keys.reserve(properties_count);
 
-        const std::string object_name(ObjectStore::object_type_for_table_name(realm->read_group().get_table(table_key)->get_name()));
+        const std::string object_name(ObjectStore::object_type_for_table_name(get_table(realm, table_key)->get_name()));
         const std::vector<Property>* properties = &realm->schema().find(object_name)->persisted_properties;
 
         for (size_t i = 0; i < properties_count; ++i) {
