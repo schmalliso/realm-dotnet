@@ -369,7 +369,6 @@ REALM_EXPORT Object* shared_realm_create_object_unique(const SharedRealm& realm,
 {
     return handle_errors(ex, [&]() {
         realm->verify_in_write();
-        realm->read_group();  //TODO can be removed?
 
         const TableRef table = get_table(realm, table_key);
 
