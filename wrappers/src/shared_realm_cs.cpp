@@ -247,12 +247,11 @@ REALM_EXPORT void shared_realm_close_realm(SharedRealm& realm, NativeException::
     });
 }
 
-REALM_EXPORT void shared_realm_get_table_key(SharedRealm& realm, uint16_t* object_type_buf, size_t object_type_len, TableKey& table_key, NativeException::Marshallable& ex)
+REALM_EXPORT TableKey shared_realm_get_table_key(SharedRealm& realm, uint16_t* object_type_buf, size_t object_type_len, NativeException::Marshallable& ex)  //TODO need to change this to do what Nikola was suggesting! typedef uint32_t realm_class_key_t;
 {
     return handle_errors(ex, [&]() {
         Utf16StringAccessor object_type(object_type_buf, object_type_len);
-        table_key = ObjectStore::table_for_object_type(realm->read_group(), object_type)->get_key();
-        return;
+        return ObjectStore::table_for_object_type(realm->read_group(), object_type)->get_key();
     });
 }
 
