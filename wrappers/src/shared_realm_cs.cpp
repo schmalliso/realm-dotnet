@@ -454,8 +454,7 @@ REALM_EXPORT Object* shared_realm_get_object_for_primary_key(SharedRealm& realm,
         realm->verify_thread();
 
         const TableRef table = get_table(realm, table_key);
-        const std::string object_name(ObjectStore::object_type_for_table_name(table->get_name()));  
-        auto& object_schema = *realm->schema().find(object_name); //TODO all of this can be simplified if we have one method that returns the object schema given the table key
+        const ObjectSchema& object_schema = *realm->schema().find(table_key); 
         if (object_schema.primary_key.empty()) {
             const std::string name(ObjectStore::object_type_for_table_name(table->get_name()));
             throw MissingPrimaryKeyException(name);

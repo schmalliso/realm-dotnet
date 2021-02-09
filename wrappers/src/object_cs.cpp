@@ -30,16 +30,6 @@
 using namespace realm;
 using namespace realm::binding;
 
-template <typename T>
-inline void object_set(Object& object, size_t property_ndx, const T& value, NativeException::Marshallable& ex)  //TODO it seems it can be removed
-{
-    return handle_errors(ex, [&]() {
-        verify_can_set(object);
-
-        object.obj().set<T>(get_column_key(object, property_ndx), value);
-    });
-}
-
 extern "C" {
     REALM_EXPORT bool object_get_is_valid(const Object& object, NativeException::Marshallable& ex)
     {
