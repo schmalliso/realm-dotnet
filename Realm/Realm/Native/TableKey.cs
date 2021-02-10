@@ -28,7 +28,7 @@ namespace Realms.Native
 
         public bool Equals(TableKey other) => value.Equals(other.value);
 
-        public override bool Equals(object obj) => obj is TableKey other && value.Equals(other.value);
+        public override bool Equals(object obj) => obj is TableKey other && Equals(other);
 
         public override int GetHashCode() => value.GetHashCode();
 
