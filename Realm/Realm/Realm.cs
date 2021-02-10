@@ -271,16 +271,10 @@ namespace Realms
             _state.AddRealm(this);
 
             SharedRealmHandle = sharedRealmHandle;
-            Metadata = CreateRealmMetadata(schema);
+            Metadata = new RealmMetadata(schema.Select(CreateRealmObjectMetadata));
             Schema = schema;
             IsFrozen = SharedRealmHandle.IsFrozen;
             DynamicApi = new Dynamic(this);
-        }
-
-        private RealmMetadata CreateRealmMetadata(RealmSchema realmSchema)
-        {
-            var objectsMetadata = realmSchema.Select(CreateRealmObjectMetadata);
-            return new RealmMetadata(objectsMetadata);
         }
 
         private RealmObjectBase.Metadata CreateRealmObjectMetadata(ObjectSchema schema)

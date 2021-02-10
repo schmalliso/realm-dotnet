@@ -41,8 +41,7 @@ REALM_EXPORT void sort_descriptor_add_clause(DescriptorOrdering& descriptor, Tab
         std::vector<ColKey> column_keys;
         column_keys.reserve(properties_count);
 
-        const std::string object_name(ObjectStore::object_type_for_table_name(get_table(realm, table_key)->get_name()));
-        const std::vector<Property>* properties = &realm->schema().find(object_name)->persisted_properties;
+        const std::vector<Property>* properties = &realm->schema().find(table_key)->persisted_properties;
 
         for (size_t i = 0; i < properties_count; ++i) {
             const Property& property = properties->at(property_chain[i]);

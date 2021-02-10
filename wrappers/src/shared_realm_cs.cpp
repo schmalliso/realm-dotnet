@@ -372,8 +372,7 @@ REALM_EXPORT Object* shared_realm_create_object_unique(const SharedRealm& realm,
 
         const TableRef table = get_table(realm, table_key);
 
-        const StringData object_name(ObjectStore::object_type_for_table_name(table->get_name()));
-        const ObjectSchema& object_schema = *realm->schema().find(object_name);
+        const ObjectSchema& object_schema = *realm->schema().find(table_key);
 
         const Property& primary_key_property = *object_schema.primary_key_property();
 

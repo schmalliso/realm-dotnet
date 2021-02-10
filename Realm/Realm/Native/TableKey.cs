@@ -24,23 +24,11 @@ namespace Realms.Native
     [StructLayout(LayoutKind.Sequential)]
     internal struct TableKey : IEquatable<TableKey>
     {
-        private uint value;
-
-        public TableKey(uint value)
-        {
-            this.value = value;
-        }
+        private UInt32 value;
 
         public bool Equals(TableKey other) => value.Equals(other.value);
 
-        public override bool Equals(object obj)
-        {
-            return obj switch
-            {
-                TableKey other => value.Equals(other.value),
-                _ => false,
-            };
-        }
+        public override bool Equals(object obj) => obj is TableKey other && value.Equals(other.value);
 
         public override int GetHashCode() => value.GetHashCode();
 

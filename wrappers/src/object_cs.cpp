@@ -151,7 +151,7 @@ extern "C" {
 
             const TableRef source_table = get_table(object.realm(), table_key);
 
-            const ObjectSchema& source_object_schema = *object.realm()->schema().find(ObjectStore::object_type_for_table_name(source_table->get_name()));
+            const ObjectSchema& source_object_schema = *object.realm()->schema().find(table_key);
             const Property& source_property = source_object_schema.persisted_properties[source_property_ndx];
 
             if (source_property.object_type != object.get_object_schema().name) {
