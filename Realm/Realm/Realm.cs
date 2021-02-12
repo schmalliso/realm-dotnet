@@ -272,6 +272,7 @@ namespace Realms
 
             SharedRealmHandle = sharedRealmHandle;
             Metadata = new RealmMetadata(schema.Select(CreateRealmObjectMetadata));
+            //Test
             Schema = schema;
             IsFrozen = SharedRealmHandle.IsFrozen;
             DynamicApi = new Dynamic(this);
