@@ -47,10 +47,6 @@ namespace Realms
     {
         #region static
 
-        // This is imperfect solution because having a realm open on a different thread wouldn't prevent deleting the file.
-        // Theoretically we could use trackAllValues: true, but that would create locking issues.
-        private static readonly ThreadLocal<IDictionary<string, WeakReference<State>>> _states = new ThreadLocal<IDictionary<string, WeakReference<State>>>(DictionaryConstructor<string, WeakReference<State>>);
-
         // TODO: due to a Mono bug, this needs to be a function rather than a lambda
         private static IDictionary<TKey, TValue> DictionaryConstructor<TKey, TValue>() => new Dictionary<TKey, TValue>();
 
@@ -169,11 +165,6 @@ namespace Realms
             Argument.NotNull(configuration, nameof(configuration));
 
             var fullpath = configuration.DatabasePath;
-            if (IsRealmOpen(fullpath))
-            {
-                throw new RealmPermissionDeniedException("Unable to delete Realm because it is still open.");
-            }
-
             var filesToDelete = new[] { string.Empty, ".log_a", ".log_b", ".log", ".lock", ".note" }
                 .Select(ext => fullpath + ext)
                 .Where(File.Exists);
@@ -187,13 +178,6 @@ namespace Realms
             {
                 Directory.Delete($"{fullpath}.management", recursive: true);
             }
-        }
-
-        private static bool IsRealmOpen(string path)
-        {
-            return _states.Value.TryGetValue(path, out var reference) &&
-                   reference.TryGetTarget(out var state) &&
-                   state.GetLiveRealms().Any();
         }
 
         #endregion static
@@ -261,11 +245,6 @@ namespace Realms
             {
                 _state = new State();
                 sharedRealmHandle.SetManagedStateHandle(GCHandle.ToIntPtr(_state.GCHandle));
-
-                if (config.EnableCache)
-                {
-                    _states.Value[config.DatabasePath] = new WeakReference<State>(_state);
-                }
             }
 
             _state.AddRealm(this);
@@ -375,13 +354,7 @@ namespace Realms
         {
             if (!IsClosed)
             {
-                // only mutate the state on explicit disposal
-                // otherwise we do so on the finalizer thread
-                if (Config.EnableCache && _state.RemoveRealm(this))
-                {
-                    _states.Value.Remove(Config.DatabasePath);
-                }
-
+                _state.RemoveRealm(this);
                 _state = null;
                 SharedRealmHandle.Close();  // Note: this closes the *handle*, it does not trigger realm::Realm::close().
             }
@@ -1414,29 +1387,32 @@ namespace Realms
             {
                 // We only want to have each realm once. That should be the case as AddRealm
                 // is only called in the Realm ctor, but let's check just in case.
-                Debug.Assert(!_weakRealms.Any(r =>
-                {
-                    return r.TryGetTarget(out var other) && ReferenceEquals(realm, other);
-                }), "Trying to add a duplicate Realm to the RealmState.");
+                Debug.Assert(!GetLiveRealms().Any(other => ReferenceEquals(realm, other)), "Trying to add a duplicate Realm to the RealmState.");
 
                 _weakRealms.Add(new WeakReference<Realm>(realm));
             }
 
-            public bool RemoveRealm(Realm realm)
+            /// <summary>
+            /// Remove a Realm from the list of Realms tracked by this state. This is only called when
+            /// Dispose is called on the Realm file and will not execute for garbage collected Realm
+            /// instances. This is fine because for GC-ed instances the lifecycle is as:
+            /// 1. Instance is GC-ed, its fields are GC-ed.
+            /// 2. The SharedRealmHandled is GC-ed, which causes Unbind to be called.
+            /// 3. The native pointer is deleted, which calls RealmCoordinator::unregister_realm.
+            /// 4. Once the last instance is deleted, the CSharpBindingContext destructor is called, which frees the state GCHandle.
+            /// 5. The State is now eligible for collection, and its fields will be GC-ed.
+            /// </summary>
+            public void RemoveRealm(Realm realm)
             {
-                var weakRealm = _weakRealms.SingleOrDefault(r =>
+                _weakRealms.RemoveAll(r =>
                 {
-                    return r.TryGetTarget(out var other) && ReferenceEquals(realm, other);
+                    return !r.TryGetTarget(out var other) || ReferenceEquals(realm, other);
                 });
-                _weakRealms.Remove(weakRealm);
 
                 if (!_weakRealms.Any())
                 {
                     realm.SharedRealmHandle.CloseRealm();
-                    return true;
                 }
-
-                return false;
             }
 
             public IEnumerable<Realm> GetLiveRealms()
