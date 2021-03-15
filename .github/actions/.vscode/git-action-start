@@ -1,0 +1,23 @@
+SYSTEM SETUP
+
+- Install nvm (Node Version Manager)
+Check github page (https://github.com/nvm-sh/nvm)
+# installing this first avoids having permission issues with npm
+
+- Install node
+nvm install node
+
+- Install npm
+nvm install npm
+
+- Install ncc (tool for compiling node.js modules in a single file)
+npm i -g @vercel/ncc 
+
+
+NOTES FOR LATER
+- github/actions/.vscode/tasks.json contains the tasks that can be used to transpile the code to javascript
+and to create a single file for distribution. It can be run from Terminal --> Run task
+- The tasks file is almost a copy of what was created by Andrea in his own branch, I need to check if we can
+have a "generic" build action, without needing to copy that for all actions
+- The tsconfig.json file also probably needs to be modified
+- It would be convenient to have util methods in a folder outside the action folders
