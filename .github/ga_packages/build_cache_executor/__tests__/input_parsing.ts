@@ -4,13 +4,11 @@ import { suite, test } from "@testdeck/mocha";
 import * as input from "../src/utils/input_parsing";
 import * as path from "path";
 
-// I can't get this to work
-//*eslint no-unused-vars: ["error", { "varsIgnorePattern": "@suite\\s+\\n?class\\s+\\w+\\s*\\{" }]*/
-
 @suite
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 class InputParsing {
   @test
-  Paths() {
+  Paths(): void {
     const pwd = __dirname;
     const oneUp = path.resolve(path.join(pwd, "../"));
     const twoUp = path.resolve(path.join(pwd, "../.."));
@@ -26,7 +24,7 @@ class InputParsing {
   }
 
   @test
-  Cmd() {
+  Cmd(): void {
     const unparsedCmds = "echo 1\necho 2\necho 3";
     const cmds = input.parseCmds(unparsedCmds);
     assert.equal(cmds.length, 3);
