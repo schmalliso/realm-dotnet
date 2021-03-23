@@ -29,9 +29,7 @@ export async function tryGetHash(
     try {
         const prefix = hashPrefix ?? `cache-${process.platform}-`;
         const folderHash = await hashFolders(paths, hashOptions);
-        return prefix.concat(
-            crypto.createHash("sha256").update(folderHash).digest("base64")
-        );
+        return prefix.concat(crypto.createHash("sha256").update(folderHash).digest("base64"));
     } catch (error) {
         oss?.error(`Hashing failed: ${error}`);
         return undefined;
@@ -41,15 +39,10 @@ export async function tryGetHash(
 /** @internal */
 // Calculates an array of hashes from all the paths (following recursively all children) and returns 1 string that results from the joined elements of the arrar.
 // Can throw exceptions.
-async function hashFolders(
-    paths: string[],
-    hashOptions?: hashOptions
-): Promise<string> {
+async function hashFolders(paths: string[], hashOptions?: hashOptions): Promise<string> {
     let hashes: string[] = [];
     for (const path of paths) {
-        const pathHash = recursiveHashFolders(
-            await folderHash.hashElement(path, hashOptions)
-        );
+        const pathHash = recursiveHashFolders(await folderHash.hashElement(path, hashOptions));
         hashes = hashes.concat(pathHash);
     }
     return hashes.join("");

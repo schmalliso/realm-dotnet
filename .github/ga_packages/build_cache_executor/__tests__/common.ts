@@ -15,10 +15,7 @@ class CommonUtils {
 
         if (!(await fs.pathExists(tempFolder))) {
             fs.mkdir(tempFolder);
-            await fs.writeFile(
-                path.join(tempFolder, "testFile"),
-                "junkContent"
-            );
+            await fs.writeFile(path.join(tempFolder, "testFile"), "junkContent");
         }
 
         const hashMap = new Map<string, string>();
@@ -34,9 +31,7 @@ class CommonUtils {
             hashMap.set(hash, tempFolder);
         } else {
             await this.CleanUp(tempFolder);
-            assert.fail(
-                `It was impossible to calculate the hash for ${tempFolder}`
-            );
+            assert.fail(`It was impossible to calculate the hash for ${tempFolder}`);
         }
 
         // recalculate to verify consistency
@@ -45,18 +40,14 @@ class CommonUtils {
             assert.equal(hashMap.get(hash), pwd);
         } else {
             await this.CleanUp(tempFolder);
-            assert.fail(
-                `It was impossible to re-calculate the hash for ${pwd}`
-            );
+            assert.fail(`It was impossible to re-calculate the hash for ${pwd}`);
         }
         hash = await utils.tryGetHash([tempFolder]);
         if (hash !== undefined) {
             assert.equal(hashMap.get(hash), tempFolder);
         } else {
             await this.CleanUp(tempFolder);
-            assert.fail(
-                `It was impossible to re-calculate the hash for ${tempFolder}`
-            );
+            assert.fail(`It was impossible to re-calculate the hash for ${tempFolder}`);
         }
         await this.CleanUp(tempFolder);
     }
